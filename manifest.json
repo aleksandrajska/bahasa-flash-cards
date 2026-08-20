@@ -1,0 +1,17 @@
+{
+  "name": "Bahasa Indonesia Flash Cards",
+  "short_name": "Bahasa Flash",
+  "description": "Kosa kata flash cards for learning Bahasa Indonesia",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7fafc",
+  "theme_color": "#5b8db8",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

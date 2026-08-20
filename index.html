@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bahasa Indonesia — Flash Cards</title>
+
+    <!-- PWA / iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bahasa Flash">
+    <meta name="theme-color" content="#5b8db8">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <style>
+        :root {
+            --blue-light: #e8f1fb;
+            --blue: #a8c8e8;
+            --blue-dark: #5b8db8;
+            --blue-text: #2c5f8a;
+            --green-light: #e8f5e9;
+            --green: #a5d6a7;
+            --green-dark: #66bb6a;
+            --green-text: #2e6b30;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #37474f;
+            --text-light: #78909c;
+            --border: #d0e3ef;
+            --shadow: 0 2px 12px rgba(91, 141, 184, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            color: var(--blue-text);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Controls */
+        .controls {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .direction-toggle {
+            display: flex;
+            background: var(--blue-light);
+            border-radius: 10px;
+            padding: 3px;
+            gap: 0;
+        }
+
+        .direction-toggle button {
+            border: none;
+            background: transparent;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text-light);
+            transition: all 0.2s;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .direction-toggle button.active {
+            background: var(--blue-dark);
+            color: #fff;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text);
+            transition: all 0.2s;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            background: var(--blue-light);
+            border-color: var(--blue);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Category filters */
+        .categories {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .categories-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .category-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .category-chip input {
+            display: none;
+        }
+
+        .category-chip.verb { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+        .category-chip.verb.checked { background: #bbdefb; border-color: #42a5f5; }
+        .category-chip.noun { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+        .category-chip.noun.checked { background: #c8e6c9; border-color: #66bb6a; }
+        .category-chip.family { background: #f1f8e9; color: #558b2f; border-color: #c5e1a5; }
+        .category-chip.family.checked { background: #dcedc8; border-color: #9ccc65; }
+        .category-chip.adjective { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+        .category-chip.adjective.checked { background: #ffe0b2; border-color: #ffa726; }
+        .category-chip.adverb { background: #f3e5f5; color: #7b1fa2; border-color: #ce93d8; }
+        .category-chip.adverb.checked { background: #e1bee7; border-color: #ab47bc; }
+        .category-chip.conjunction { background: #e0f7fa; color: #00838f; border-color: #80deea; }
+        .category-chip.conjunction.checked { background: #b2ebf2; border-color: #26c6da; }
+        .category-chip.phrase { background: #fce4ec; color: #ad1457; border-color: #f48fb1; }
+        .category-chip.phrase.checked { background: #f8bbd0; border-color: #ec407a; }
+        .category-chip.select-all { background: var(--blue-light); color: var(--blue-text); border-color: var(--blue); }
+        .category-chip.select-all.checked { background: var(--blue); color: #fff; border-color: var(--blue-dark); }
+
+        .category-chip:not(.checked) {
+            opacity: 0.5;
+        }
+
+        /* Card */
+        .card-area {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .progress {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .card {
+            width: 100%;
+            min-height: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            will-change: transform;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(91, 141, 184, 0.2);
+            border-color: var(--blue);
+        }
+
+        .card.flipped {
+            background: linear-gradient(135deg, var(--blue-light) 0%, var(--green-light) 100%);
+        }
+
+        .pos-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .pos-tag.verb { background: #e3f2fd; color: #1565c0; }
+        .pos-tag.noun { background: #e8f5e9; color: #2e7d32; }
+        .pos-tag.family { background: #f1f8e9; color: #558b2f; }
+        .pos-tag.adjective { background: #fff3e0; color: #e65100; }
+        .pos-tag.adverb { background: #f3e5f5; color: #7b1fa2; }
+        .pos-tag.conjunction { background: #e0f7fa; color: #00838f; }
+        .pos-tag.phrase { background: #fce4ec; color: #ad1457; }
+
+        .card-word {
+            font-size: 2.0rem;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .card-translation {
+            font-size: 1.5rem;
+            color: var(--blue-text);
+            text-align: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid var(--border);
+            width: 100%;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-style: italic;
+        }
+
+        .card.flipped .card-translation {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-hint {
+            position: absolute;
+            bottom: 12px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .card.flipped .card-hint {
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            display: none;
+        }
+
+        .card.empty .empty-state {
+            display: block;
+        }
+
+        .card.empty .pos-tag,
+        .card.empty .card-word,
+        .card.empty .card-translation,
+        .card.empty .card-hint {
+            display: none;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: var(--blue-light);
+            border: 1px solid var(--blue);
+            color: var(--blue-text);
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .nav-btn:hover {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 500px) {
+            header h1 { font-size: 1.5rem; }
+            .card-word { font-size: 1.7rem; }
+            .card-translation { font-size: 1.3rem; }
+            .card { min-height: 260px; padding: 24px; }
+            .control-row { flex-direction: column; }
+            .direction-toggle { width: 100%; justify-content: center; }
+            .direction-toggle button { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🇮🇩 Bahasa Indonesia Flash Cards</h1>
+    <p>Klik kartu untuk melihat terjemahan · Click card to reveal translation</p>
+</header>
+
+<div class="controls">
+    <div class="control-row">
+        <div class="direction-toggle">
+            <button id="dir-id-en" class="active">ID → EN</button>
+            <button id="dir-en-id">EN → ID</button>
+        </div>
+        <button class="btn" id="shuffle-btn">🔀 Shuffle</button>
+    </div>
+
+    <div class="categories">
+        <div class="categories-label">Kategori · Categories</div>
+        <div class="category-list" id="category-list">
+            <label class="category-chip select-all checked" id="select-all">
+                <input type="checkbox" id="chk-all" checked>
+                Select All
+            </label>
+            <label class="category-chip verb checked">
+                <input type="checkbox" class="cat-chk" data-cat="verb" checked> Verbs
+            </label>
+            <label class="category-chip noun checked">
+                <input type="checkbox" class="cat-chk" data-cat="noun" checked> Nouns
+            </label>
+            <label class="category-chip family checked">
+                <input type="checkbox" class="cat-chk" data-cat="family" checked> Family
+            </label>
+            <label class="category-chip adjective checked">
+                <input type="checkbox" class="cat-chk" data-cat="adjective" checked> Adjectives
+            </label>
+            <label class="category-chip adverb checked">
+                <input type="checkbox" class="cat-chk" data-cat="adverb" checked> Adverbs
+            </label>
+            <label class="category-chip conjunction checked">
+                <input type="checkbox" class="cat-chk" data-cat="conjunction" checked> Conjunctions
+            </label>
+            <label class="category-chip phrase checked">
+                <input type="checkbox" class="cat-chk" data-cat="phrase" checked> Phrases
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="card-area">
+    <div class="progress" id="progress">Card 1 of 1</div>
+    <div class="card" id="card">
+        <span class="pos-tag" id="pos-tag">verb</span>
+        <div class="card-word" id="card-word">makan</div>
+        <div class="card-translation" id="card-translation">eat</div>
+        <div class="card-hint" id="card-hint">👆 Klik untuk terjemahan</div>
+        <div class="empty-state" id="empty-state">No cards selected. Pick at least one category! 📚</div>
+    </div>
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prev-btn">←</button>
+        <button class="nav-btn" id="next-btn">→</button>
+    </div>
+</div>
+
+<script>
+// ===== VOCABULARY DATA =====
+var vocabulary = [
+    // VERBS
+    {id: "angkat beban", en: "weightlifting", cat: "verb"},
+    {id: "bangun", en: "wake up / build", cat: "verb"},
+    {id: "belajar", en: "study", cat: "verb"},
+    {id: "belanja / berbelanja", en: "do shopping", cat: "verb"},
+    {id: "beli", en: "buy", cat: "verb"},
+    {id: "beristirahat / istirahat", en: "take rest", cat: "verb"},
+    {id: "berkunjung", en: "visit", cat: "verb"},
+    {id: "berlibur", en: "having holiday", cat: "verb"},
+    {id: "bisa", en: "can", cat: "verb"},
+    {id: "buat", en: "make (create)", cat: "verb"},
+    {id: "baca / membaca", en: "read", cat: "verb"},
+    {id: "datang", en: "come", cat: "verb"},
+    {id: "jalan kaki / berjalan kaki", en: "to walk", cat: "verb"},
+    {id: "jual", en: "sell", cat: "verb"},
+    {id: "kenal", en: "know (personally)", cat: "verb"},
+    {id: "kenalkan", en: "let me introduce", cat: "verb"},
+    {id: "kerja", en: "work", cat: "verb"},
+    {id: "kembali", en: "return", cat: "verb"},
+    {id: "lahir", en: "born", cat: "verb"},
+    {id: "lakukan", en: "doing", cat: "verb"},
+    {id: "lihat", en: "see", cat: "verb"},
+    {id: "masak", en: "cook", cat: "verb"},
+    {id: "makan", en: "eat", cat: "verb"},
+    {id: "menikah", en: "married", cat: "verb"},
+    {id: "menyelam", en: "diving", cat: "verb"},
+    {id: "mengajak / ajak", en: "invite (casual)", cat: "verb"},
+    {id: "mengirim / kirim", en: "send", cat: "verb"},
+    {id: "mengundang / undang", en: "invite (formal)", cat: "verb"},
+    {id: "mengunjungi / kunjungi", en: "visit", cat: "verb"},
+    {id: "merayakan / rayakan", en: "celebrate", cat: "verb"},
+    {id: "minum", en: "drink", cat: "verb"},
+    {id: "mulai", en: "start", cat: "verb"},
+    {id: "nonton", en: "watch", cat: "verb"},
+    {id: "olahraga", en: "do exercise / sport", cat: "verb"},
+    {id: "pakai", en: "wear", cat: "verb"},
+    {id: "pesan / memesan", en: "order / message", cat: "verb"},
+    {id: "pergi", en: "go", cat: "verb"},
+    {id: "pilih", en: "choose", cat: "verb"},
+    {id: "pulang", en: "go home / return", cat: "verb"},
+    {id: "punya", en: "have / has (own)", cat: "verb"},
+    {id: "selesai", en: "finished", cat: "verb"},
+    {id: "sampai", en: "arrive / until", cat: "verb"},
+    {id: "tahu", en: "know (general)", cat: "verb"},
+    {id: "tidur", en: "sleep", cat: "verb"},
+    {id: "tinggal", en: "live / stay", cat: "verb"},
+    {id: "ulang", en: "repeat", cat: "verb"},
+    {id: "bertemu / temu", en: "meet", cat: "verb"},
+
+    // NOUNS - GENERAL
+    {id: "air", en: "water", cat: "noun"},
+    {id: "akhir", en: "end", cat: "noun"},
+    {id: "alpukat", en: "avocado", cat: "noun"},
+    {id: "artis", en: "artist", cat: "noun"},
+    {id: "awal", en: "beginning", cat: "noun"},
+    {id: "bioskop", en: "cinema", cat: "noun"},
+    {id: "bumbu", en: "spices", cat: "noun"},
+    {id: "buah", en: "fruit", cat: "noun"},
+    {id: "cafe", en: "cafe", cat: "noun"},
+    {id: "daging", en: "meat", cat: "noun"},
+    {id: "deadline", en: "deadline", cat: "noun"},
+    {id: "derajat", en: "degree", cat: "noun"},
+    {id: "dokter", en: "doctor", cat: "noun"},
+    {id: "doktor", en: "PhD", cat: "noun"},
+    {id: "film", en: "movie", cat: "noun"},
+    {id: "guru", en: "teacher", cat: "noun"},
+    {id: "hadiah", en: "gift", cat: "noun"},
+    {id: "Hp / ponsel", en: "phone", cat: "noun"},
+    {id: "jam", en: "hour", cat: "noun"},
+    {id: "jadwal", en: "schedule", cat: "noun"},
+    {id: "jalan", en: "street / the way", cat: "noun"},
+    {id: "jarak", en: "distance", cat: "noun"},
+    {id: "kantor", en: "office", cat: "noun"},
+    {id: "kacang", en: "beans", cat: "noun"},
+    {id: "karir", en: "career", cat: "noun"},
+    {id: "karakter", en: "character", cat: "noun"},
+    {id: "keluar", en: "exit", cat: "noun"},
+    {id: "keluarga", en: "family", cat: "noun"},
+    {id: "keju", en: "cheese", cat: "noun"},
+    {id: "kolam renang", en: "swimming pool", cat: "noun"},
+    {id: "kopi", en: "coffee", cat: "noun"},
+    {id: "kue", en: "cake", cat: "noun"},
+    {id: "lantai", en: "floor", cat: "noun"},
+    {id: "liburan", en: "holiday", cat: "noun"},
+    {id: "masalah", en: "problem", cat: "noun"},
+    {id: "mobil", en: "car", cat: "noun"},
+    {id: "minggu", en: "Sunday / week", cat: "noun"},
+    {id: "nasi", en: "rice", cat: "noun"},
+    {id: "orang", en: "person", cat: "noun"},
+    {id: "pameran", en: "exhibition", cat: "noun"},
+    {id: "pantai", en: "beach", cat: "noun"},
+    {id: "parfum", en: "perfume", cat: "noun"},
+    {id: "pasar", en: "market", cat: "noun"},
+    {id: "pekerjaan", en: "profession", cat: "noun"},
+    {id: "penari", en: "dancer", cat: "noun"},
+    {id: "pengacara", en: "lawyer", cat: "noun"},
+    {id: "pernikahan", en: "wedding", cat: "noun"},
+    {id: "perpustakaan / perpus", en: "library", cat: "noun"},
+    {id: "perusahaan", en: "company", cat: "noun"},
+    {id: "pesta", en: "party", cat: "noun"},
+    {id: "piala dunia", en: "world cup", cat: "noun"},
+    {id: "produk susu", en: "dairy products", cat: "noun"},
+    {id: "resep", en: "recipe", cat: "noun"},
+    {id: "restoran", en: "restaurant", cat: "noun"},
+    {id: "rumah", en: "house / home", cat: "noun"},
+    {id: "sekolah", en: "school", cat: "noun"},
+    {id: "senam", en: "group exercise", cat: "noun"},
+    {id: "sepeda", en: "bicycle", cat: "noun"},
+    {id: "taman", en: "park / garden", cat: "noun"},
+    {id: "tanggal", en: "date (calendar)", cat: "noun"},
+    {id: "tahu", en: "tofu", cat: "noun"},
+    {id: "teman", en: "friend", cat: "noun"},
+    {id: "tempe", en: "tempeh", cat: "noun"},
+    {id: "toko", en: "shop", cat: "noun"},
+    {id: "trainer / PT", en: "personal trainer", cat: "noun"},
+    {id: "undangan", en: "invitation", cat: "noun"},
+    {id: "waktu", en: "time", cat: "noun"},
+    {id: "tahun", en: "year", cat: "noun"},
+    {id: "bulan", en: "moon / month", cat: "noun"},
+
+    // NOUNS - FAMILY
+    {id: "Bapak / Papa / Ayah", en: "Father", cat: "family"},
+    {id: "Ibu / Mama / Bunda", en: "Mother", cat: "family"},
+    {id: "Anak", en: "child", cat: "family"},
+    {id: "anak-anak", en: "children", cat: "family"},
+    {id: "Anak laki-laki / Putra", en: "boy / son", cat: "family"},
+    {id: "Anak perempuan / Putri", en: "girl / daughter", cat: "family"},
+    {id: "Kakak", en: "older sibling", cat: "family"},
+    {id: "Kakak laki-laki", en: "older brother", cat: "family"},
+    {id: "Kakak perempuan", en: "older sister", cat: "family"},
+    {id: "Adik", en: "younger sibling", cat: "family"},
+    {id: "Adik laki-laki", en: "younger brother", cat: "family"},
+    {id: "Adik perempuan", en: "younger sister", cat: "family"},
+    {id: "Saudara", en: "sibling", cat: "family"},
+    {id: "Kakek / Opa", en: "Grandfather", cat: "family"},
+    {id: "Nenek / Oma", en: "Grandmother", cat: "family"},
+    {id: "kakek nenek", en: "grandparents", cat: "family"},
+    {id: "orang tua", en: "parents", cat: "family"},
+    {id: "Cucu", en: "grandchild", cat: "family"},
+    {id: "Anak sulung", en: "the first child", cat: "family"},
+    {id: "Anak bungsu", en: "the last child", cat: "family"},
+    {id: "Anak tunggal", en: "the only child", cat: "family"},
+    {id: "keponakan", en: "nephew / niece", cat: "family"},
+    {id: "Tanta / Bibi", en: "Aunt", cat: "family"},
+    {id: "Om / Paman", en: "Uncle", cat: "family"},
+    {id: "Sepupu", en: "cousin", cat: "family"},
+    {id: "Ipar", en: "in-law", cat: "family"},
+    {id: "Mertua", en: "parents in-law", cat: "family"},
+    {id: "Suami", en: "husband", cat: "family"},
+    {id: "Istri", en: "wife", cat: "family"},
+    {id: "tunangan", en: "fiance", cat: "family"},
+    {id: "pacar", en: "girlfriend / boyfriend", cat: "family"},
+
+    // ADJECTIVES
+    {id: "baik", en: "good", cat: "adjective"},
+    {id: "kurang baik", en: "less good", cat: "adjective"},
+    {id: "ramah", en: "friendly", cat: "adjective"},
+    {id: "sehat", en: "healthy", cat: "adjective"},
+    {id: "sibuk", en: "busy", cat: "adjective"},
+    {id: "sama", en: "same", cat: "adjective"},
+    {id: "seimbang", en: "balance", cat: "adjective"},
+    {id: "bersih", en: "clean", cat: "adjective"},
+    {id: "tua", en: "old", cat: "adjective"},
+    {id: "muda", en: "young", cat: "adjective"},
+    {id: "baru", en: "new", cat: "adjective"},
+    {id: "besar", en: "big", cat: "adjective"},
+    {id: "kecil", en: "small", cat: "adjective"},
+    {id: "favorit", en: "favorite", cat: "adjective"},
+    {id: "lama", en: "long (duration)", cat: "adjective"},
+    {id: "enak", en: "delicious", cat: "adjective"},
+    {id: "cocok", en: "match", cat: "adjective"},
+    {id: "sendiri", en: "alone / self", cat: "adjective"},
+    {id: "sulung", en: "firstborn", cat: "adjective"},
+    {id: "bungsu", en: "lastborn", cat: "adjective"},
+    {id: "tunggal", en: "only / single", cat: "adjective"},
+
+    // ADVERBS
+    {id: "sekarang", en: "now", cat: "adverb"},
+    {id: "biasanya", en: "usually", cat: "adverb"},
+    {id: "sering", en: "often", cat: "adverb"},
+    {id: "selalu", en: "always", cat: "adverb"},
+    {id: "masih", en: "still", cat: "adverb"},
+    {id: "lagi", en: "again", cat: "adverb"},
+    {id: "lebih", en: "more", cat: "adverb"},
+    {id: "paling", en: "the most", cat: "adverb"},
+    {id: "kadang-kadang", en: "sometimes", cat: "adverb"},
+    {id: "baru-baru ini", en: "recently", cat: "adverb"},
+    {id: "baru-baru saja", en: "just now", cat: "adverb"},
+    {id: "terakhir", en: "last", cat: "adverb"},
+    {id: "pertama kali", en: "first time", cat: "adverb"},
+    {id: "saja", en: "only / just", cat: "adverb"},
+    {id: "semakin", en: "getting more", cat: "adverb"},
+    {id: "tergantung", en: "it depends", cat: "adverb"},
+    {id: "sebenarnya", en: "actually", cat: "adverb"},
+
+    // CONJUNCTIONS & PREPOSITIONS
+    {id: "dan", en: "and", cat: "conjunction"},
+    {id: "atau", en: "or", cat: "conjunction"},
+    {id: "tetapi / tapi", en: "but", cat: "conjunction"},
+    {id: "karena", en: "because", cat: "conjunction"},
+    {id: "supaya", en: "so that", cat: "conjunction"},
+    {id: "jadi", en: "so / therefore", cat: "conjunction"},
+    {id: "berarti", en: "it means", cat: "conjunction"},
+    {id: "seperti / kayak", en: "looks like", cat: "conjunction"},
+    {id: "sebagai", en: "as", cat: "conjunction"},
+    {id: "yang", en: "that / which / whom", cat: "conjunction"},
+    {id: "dari", en: "from", cat: "conjunction"},
+    {id: "di", en: "in / at / on (place)", cat: "conjunction"},
+    {id: "ke", en: "to", cat: "conjunction"},
+    {id: "pada", en: "at / on (time)", cat: "conjunction"},
+    {id: "dengan", en: "with", cat: "conjunction"},
+    {id: "setelah", en: "after", cat: "conjunction"},
+    {id: "setelahnya", en: "after that", cat: "conjunction"},
+    {id: "selain", en: "besides / other than", cat: "conjunction"},
+    {id: "selama", en: "for / during", cat: "conjunction"},
+    {id: "untuk", en: "for / to (receiver)", cat: "conjunction"},
+    {id: "daripada", en: "than", cat: "conjunction"},
+    {id: "di sini", en: "in here", cat: "conjunction"},
+    {id: "di sana", en: "in there", cat: "conjunction"},
+
+    // SHORT PHRASES
+    {id: "Selamat pagi", en: "Good morning", cat: "phrase"},
+    {id: "Selamat siang", en: "Good day", cat: "phrase"},
+    {id: "Selamat sore", en: "Good afternoon", cat: "phrase"},
+    {id: "Selamat malam", en: "Good evening", cat: "phrase"},
+    {id: "Selamat tidur", en: "Good night", cat: "phrase"},
+    {id: "Selamat datang", en: "Welcome", cat: "phrase"},
+    {id: "Terima kasih / Makasih", en: "Thank you", cat: "phrase"},
+    {id: "Sama-sama", en: "You're welcome", cat: "phrase"},
+    {id: "Maaf", en: "Sorry", cat: "phrase"},
+    {id: "Permisi", en: "Excuse me", cat: "phrase"},
+    {id: "Silahkan", en: "Yes please / allow", cat: "phrase"},
+    {id: "Tidak apa-apa", en: "No problem", cat: "phrase"},
+    {id: "Apa kabar?", en: "How are you?", cat: "phrase"},
+    {id: "Baik-baik saja", en: "Fine", cat: "phrase"},
+    {id: "Sampai jumpa", en: "Good bye", cat: "phrase"},
+    {id: "Halo", en: "Hello", cat: "phrase"},
+    {id: "Tentu saja", en: "Of course", cat: "phrase"},
+    {id: "Benar", en: "Correct / True", cat: "phrase"},
+    {id: "Sip", en: "OK / Great", cat: "phrase"},
+    {id: "Ayo / Yuk", en: "Let's!", cat: "phrase"},
+];
+
+// ===== STATE =====
+var direction = "id-en";
+var activeCategories = new Set(["verb", "noun", "family", "adjective", "adverb", "conjunction", "phrase"]);
+var currentDeck = [];
+var currentIndex = 0;
+var isFlipped = false;
+
+var catLabels = {
+    verb: "verb",
+    noun: "noun",
+    family: "family",
+    adjective: "adjective",
+    adverb: "adverb",
+    conjunction: "conjunction",
+    phrase: "phrase"
+};
+
+// ===== DOM REFERENCES (cached once, never destroyed) =====
+var cardEl = document.getElementById("card");
+var posTagEl = document.getElementById("pos-tag");
+var wordEl = document.getElementById("card-word");
+var translationEl = document.getElementById("card-translation");
+var hintEl = document.getElementById("card-hint");
+var progressEl = document.getElementById("progress");
+var prevBtnEl = document.getElementById("prev-btn");
+var nextBtnEl = document.getElementById("next-btn");
+
+// ===== FUNCTIONS =====
+function buildDeck() {
+    currentDeck = vocabulary.filter(function(v) { return activeCategories.has(v.cat); });
+    for (var i = currentDeck.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = currentDeck[i];
+        currentDeck[i] = currentDeck[j];
+        currentDeck[j] = temp;
+    }
+    currentIndex = 0;
+    isFlipped = false;
+    renderCard();
+}
+
+function renderCard() {
+    if (currentDeck.length === 0) {
+        cardEl.classList.add("empty");
+        cardEl.classList.remove("flipped");
+        isFlipped = false;
+        progressEl.textContent = "Card 0 of 0";
+        prevBtnEl.disabled = true;
+        nextBtnEl.disabled = true;
+        return;
+    }
+
+    cardEl.classList.remove("empty");
+
+    var item = currentDeck[currentIndex];
+    var front = direction === "id-en" ? item.id : item.en;
+    var back = direction === "id-en" ? item.en : item.id;
+
+    posTagEl.className = "pos-tag " + item.cat;
+    posTagEl.textContent = catLabels[item.cat];
+    wordEl.textContent = front;
+    translationEl.textContent = back;
+
+    hintEl.textContent = direction === "id-en" ? "👆 Klik untuk terjemahan" : "👆 Click for translation";
+
+    cardEl.classList.remove("flipped");
+    isFlipped = false;
+
+    progressEl.textContent = "Card " + (currentIndex + 1) + " of " + currentDeck.length;
+
+    prevBtnEl.disabled = currentIndex === 0;
+    nextBtnEl.disabled = currentIndex === currentDeck.length - 1;
+}
+
+function flipCard() {
+    if (currentDeck.length === 0) return;
+    isFlipped = !isFlipped;
+    if (isFlipped) {
+        cardEl.classList.add("flipped");
+    } else {
+        cardEl.classList.remove("flipped");
+    }
+}
+
+function nextCard() {
+    if (currentDeck.length === 0 || currentIndex >= currentDeck.length - 1) return;
+    currentIndex++;
+    renderCard();
+}
+
+function prevCard() {
+    if (currentDeck.length === 0 || currentIndex === 0) return;
+    currentIndex--;
+    renderCard();
+}
+
+function shuffleCards() {
+    if (currentDeck.length === 0) return;
+    for (var i = currentDeck.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = currentDeck[i];
+        currentDeck[i] = currentDeck[j];
+        currentDeck[j] = temp;
+    }
+    currentIndex = 0;
+    renderCard();
+}
+
+function setDirection(dir) {
+    direction = dir;
+    document.getElementById("dir-id-en").classList.toggle("active", dir === "id-en");
+    document.getElementById("dir-en-id").classList.toggle("active", dir === "en-id");
+    renderCard();
+}
+
+function toggleAll() {
+    var checkboxes = document.querySelectorAll(".cat-chk");
+    var selectAllChk = document.getElementById("chk-all");
+    var isChecked = selectAllChk.checked;
+
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = isChecked;
+        if (isChecked) {
+            checkboxes[i].parentElement.classList.add("checked");
+        } else {
+            checkboxes[i].parentElement.classList.remove("checked");
+        }
+    }
+
+    if (isChecked) {
+        activeCategories = new Set(["verb", "noun", "family", "adjective", "adverb", "conjunction", "phrase"]);
+    } else {
+        activeCategories = new Set();
+    }
+    buildDeck();
+}
+
+function updateCategories() {
+    var checkboxes = document.querySelectorAll(".cat-chk");
+    activeCategories = new Set();
+    var allChecked = true;
+
+    for (var i = 0; i < checkboxes.length; i++) {
+        var cat = checkboxes[i].dataset.cat;
+        if (checkboxes[i].checked) {
+            activeCategories.add(cat);
+            checkboxes[i].parentElement.classList.add("checked");
+        } else {
+            checkboxes[i].parentElement.classList.remove("checked");
+            allChecked = false;
+        }
+    }
+
+    document.getElementById("chk-all").checked = allChecked;
+    if (allChecked) {
+        document.getElementById("select-all").classList.add("checked");
+    } else {
+        document.getElementById("select-all").classList.remove("checked");
+    }
+
+    buildDeck();
+}
+
+// ===== EVENT LISTENERS (addEventListener for mobile compatibility) =====
+
+// Card flip
+cardEl.addEventListener("click", flipCard);
+
+// Navigation buttons
+prevBtnEl.addEventListener("click", prevCard);
+nextBtnEl.addEventListener("click", nextCard);
+
+// Shuffle button
+document.getElementById("shuffle-btn").addEventListener("click", shuffleCards);
+
+// Direction toggle
+document.getElementById("dir-id-en").addEventListener("click", function() { setDirection("id-en"); });
+document.getElementById("dir-en-id").addEventListener("click", function() { setDirection("en-id"); });
+
+// Category checkboxes
+document.getElementById("chk-all").addEventListener("change", toggleAll);
+var catChks = document.querySelectorAll(".cat-chk");
+for (var i = 0; i < catChks.length; i++) {
+    catChks[i].addEventListener("change", updateCategories);
+}
+
+// Keyboard navigation (desktop)
+document.addEventListener("keydown", function(e) {
+    if (e.key === "ArrowLeft") prevCard();
+    if (e.key === "ArrowRight") nextCard();
+    if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        flipCard();
+    }
+});
+
+// Prevent pinch-zoom on iOS
+document.addEventListener("gesturestart", function(e) { e.preventDefault(); });
+
+// Initialize
+buildDeck();
+</script>
+
+</body>
+</html>
