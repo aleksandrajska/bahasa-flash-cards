@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
   <rect width="180" height="90" fill="#ce1126" rx="20"/>
   <rect y="90" width="180" height="90" fill="#ffffff" rx="20"/>
-  <text x="90" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="bold" text-anchor="middle" fill="#ffffff">kosa</text>
-  <text x="90" y="138" font-family="Arial, sans-serif" font-size="30" font-weight="bold" text-anchor="middle" fill="#2c5f8a">kata</text>
+  <rect x="10" y="10" width="160" height="160" fill="none" stroke="#5b8db8" stroke-width="4" rx="16"/>
+  <text x="90" y="115" font-family="Arial, sans-serif" font-size="60" font-weight="bold" text-anchor="middle" fill="#2c5f8a">ID</text>
 </svg>

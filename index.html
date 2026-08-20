@@ -756,11 +756,11 @@ function renderCard() {
 
 function flipCard() {
     if (currentDeck.length === 0) return;
-    isFlipped = !isFlipped;
-    if (isFlipped) {
+    if (!isFlipped) {
+        isFlipped = true;
         cardEl.classList.add("flipped");
     } else {
-        cardEl.classList.remove("flipped");
+        nextCard();
     }
 }
 
