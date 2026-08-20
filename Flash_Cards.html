@@ -52,7 +52,6 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            padding-top: max(40px, env(safe-area-inset-top));
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -61,6 +60,7 @@
             margin-bottom: 24px;
         }
 
+        header h1 {
             color: var(--blue-text);
             font-size: 1.8rem;
             font-weight: 600;
@@ -366,6 +366,7 @@
         }
 
         @media (max-width: 500px) {
+            header h1 { font-size: 1.5rem; }
             .card-word { font-size: 1.7rem; }
             .card-translation { font-size: 1.3rem; }
             .card { min-height: 260px; padding: 24px; }
@@ -377,6 +378,10 @@
 </head>
 <body>
 
+<header>
+    <h1>🇮🇩 Bahasa Indonesia Flash Cards</h1>
+    <p>Klik kartu untuk melihat terjemahan · Click card to reveal translation</p>
+</header>
 
 <div class="controls">
     <div class="control-row">
@@ -756,11 +761,11 @@ function renderCard() {
 
 function flipCard() {
     if (currentDeck.length === 0) return;
-    if (!isFlipped) {
-        isFlipped = true;
+    isFlipped = !isFlipped;
+    if (isFlipped) {
         cardEl.classList.add("flipped");
     } else {
-        nextCard();
+        cardEl.classList.remove("flipped");
     }
 }
 
