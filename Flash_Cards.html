@@ -745,8 +745,8 @@ function renderCard() {
 
     posTagEl.className = "pos-tag " + item.cat;
     posTagEl.textContent = catLabels[item.cat];
-    wordEl.textContent = front;
-    translationEl.textContent = back;
+    wordEl.textContent = front.toLowerCase();
+    translationEl.textContent = back.toLowerCase();
 
     hintEl.textContent = direction === "id-en" ? "👆 Klik untuk terjemahan" : "👆 Click for translation";
 
